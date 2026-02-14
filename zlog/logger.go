@@ -62,7 +62,7 @@ func init() {
 func setupZeroLogGlobals() {
 	setDefaultLevel()
 	zerolog.TimestampFieldName = "timestamp"
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
+	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.ErrorHandler = func(err error) {
 		slog.Error(err.Error())
@@ -80,7 +80,7 @@ func setupSlogDefault() {
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			switch a.Key {
 			case slog.TimeKey:
-				return slog.Int64(zerolog.TimestampFieldName, a.Value.Time().UnixMilli())
+				return slog.String(zerolog.TimestampFieldName, a.Value.Time().Format(time.RFC3339))
 			case slog.LevelKey:
 				return slog.String(slog.LevelKey, strings.ToLower(a.Value.String()))
 			}
