@@ -50,6 +50,8 @@ var (
 	DiodeDroppedLogFn = DefaultDiodeDroppedLogFn
 )
 
+const DateTimeZone = "2025-12-15T07:15:00+0700"
+
 // --- Initialization ---
 
 func init() {
@@ -62,7 +64,7 @@ func init() {
 func setupZeroLogGlobals() {
 	setDefaultLevel()
 	zerolog.TimestampFieldName = "timestamp"
-	zerolog.TimeFieldFormat = time.RFC3339
+	zerolog.TimeFieldFormat = DateTimeZone
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.ErrorHandler = func(err error) {
 		slog.Error(err.Error())
