@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories
+vendor/
+.yarn
+node_modules
+
+# Go Modules workspace file
+# see: https://go.googlesource.com/proposal/+/master/design/45713-workspace.md
+go.work
+go.work.sum
+
+junit.xml
+
+.idea
+
+*.rdb
+
+# we don't want to have opinion on how downstream service use the indirect deps
+go.sum
+
+coverage
+k6-report.html
+.DS_Store
+
+**/.vscode/*
+!**/.vscode/settings.template.json
+!**/.vscode/launch.template.json
+!**/.vscode/extensions.json
+
+# lint
+checkstyle.xml
+gl-code-quality-report.json
