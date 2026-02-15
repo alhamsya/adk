@@ -14,44 +14,6 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 )
 
-// --- Types & Constants ---
-
-type Logger struct {
-	zerolog.Logger
-	Config LoggerConfig
-}
-
-type LoggerConfig struct {
-	CallerSkipFrameCount int
-}
-
-type LoggerOption func(cfg *LoggerConfig)
-
-const (
-	LevelDebug = "debug"
-	LevelInfo  = "info"
-	LevelError = "error"
-	LevelWarn  = "warn"
-
-	// LogLevelEnvKey is the environment variable used to detect default level
-	// for the global logger.
-	LogLevelEnvKey = "ZLOG_LEVEL"
-)
-
-var (
-	DefaultDiode  diode.Writer
-	DefaultLogger Logger
-	defaultLevel  = slog.LevelDebug
-)
-
-var (
-	DiodeBufferSize   = 1000
-	DiodePollInterval = time.Millisecond
-	DiodeDroppedLogFn = DefaultDiodeDroppedLogFn
-)
-
-const DateTimeZone = "2025-12-15T07:15:00+0700"
-
 // --- Initialization ---
 
 func init() {

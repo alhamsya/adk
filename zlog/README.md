@@ -10,6 +10,43 @@ To use `zlog` in your project, install it via `go get`:
 go get github.com/alhamsya/adk/zlog
 ```
 
+## Features
+
+### Timestamp Format (Timestampz)
+
+`zlog` automatically configures `zerolog` and `slog` to use **RFC3339** format (e.g., `2026-02-15T15:04:05+07:00`) for the `timestamp` field. This ensures compatibility with systems expecting `timestampz`.
+
+### Metadata Injection
+
+You can inject metadata into the context, which will be automatically included in all subsequent log entries created from that context.
+
+#### 1. Initialize Context
+First, initialize the context to hold metadata:
+
+```go
+ctx := context.Background()
+ctx = zlog.CtxWithMetadata(ctx, nil)
+```
+
+#### 2. Inject Metadata
+Inject metadata key-value pairs. This updates the metadata in-place (thread-safe).
+
+```go
+zlog.InjectMetadata(ctx, map[string]any{
+    "user_id": "12345",
+    "request_id": "req-abc-789",
+})
+```
+
+#### 3. Log with Metadata
+When you create a logger from this context, the metadata is automatically attached.
+
+```go
+logger := zlog.FromContext(ctx)
+logger.Info().Msg("Action performed")
+// Output: {"level":"info","metadata":{"user_id":"12345","request_id":"req-abc-789"},"timestamp":"...","message":"Action performed"}
+```
+
 ## Usage
 
 ### Basic Usage
