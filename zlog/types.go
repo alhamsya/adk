@@ -11,16 +11,16 @@ import (
 
 // --- Types & Constants ---
 
-type Logger struct {
+type logger struct {
 	zerolog.Logger
-	Config LoggerConfig
+	Config loggerConfig
 }
 
-type LoggerConfig struct {
+type loggerConfig struct {
 	CallerSkipFrameCount int
 }
 
-type LoggerOption func(cfg *LoggerConfig)
+type loggerOption func(cfg *loggerConfig)
 
 const (
 	LevelDebug = "debug"
@@ -34,18 +34,16 @@ const (
 )
 
 var (
-	DefaultDiode  diode.Writer
-	DefaultLogger Logger
+	defaultDiode  diode.Writer
+	defaultLogger logger
 	defaultLevel  = slog.LevelDebug
 )
 
 var (
-	DiodeBufferSize   = 1000
-	DiodePollInterval = time.Millisecond
-	DiodeDroppedLogFn = DefaultDiodeDroppedLogFn
+	diodeBufferSize   = 1000
+	diodePollInterval = time.Millisecond
+	diodeDroppedLogFn = defaultDiodeDroppedLogFn
 )
-
-const DateTimeZone = time.RFC3339
 
 type Metadata struct {
 	*sync.Map

@@ -47,6 +47,18 @@ logger.Info().Msg("Action performed")
 // Output: {"level":"info","metadata":{"user_id":"12345","request_id":"req-abc-789"},"timestamp":"...","message":"Action performed"}
 ```
 
+### Stack Traces
+
+`zlog` is configured to automatically log stack traces for errors that implement the `pkg/errors.StackTracer` interface.
+
+```go
+import "github.com/pkg/errors"
+
+err := errors.New("something went wrong")
+logger.Error().Err(err).Msg("Operation failed")
+// Output will include a "stack" field with the stack trace.
+```
+
 ## Usage
 
 ### Basic Usage

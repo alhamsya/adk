@@ -26,41 +26,63 @@ func init() {
 func setupZeroLogGlobals() {
 	setDefaultLevel()
 	zerolog.TimestampFieldName = "timestamp"
-	zerolog.TimeFieldFormat = DateTimeZone
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+	zerolog.TimeFieldFormat = time.RFC3339
+	zerolog.ErrorStackMarshaler = marshalStack
 	zerolog.ErrorHandler = func(err error) {
 		slog.Error(err.Error())
 	}
 }
 
 func setupDefaultDiode() {
-	DefaultDiode = diode.NewWriter(os.Stdout, DiodeBufferSize, DiodePollInterval, DiodeDroppedLogFn)
+	defaultDiode = diode.NewWriter(os.Stdout, diodeBufferSize, diodePollInterval, defaultDiodeDroppedLogFn)
 }
 
 func setupSlogDefault() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(DefaultDiode, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     defaultLevel,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			switch a.Key {
-			case slog.TimeKey:
-				return slog.String(zerolog.TimestampFieldName, a.Value.Time().Format(time.RFC3339))
-			case slog.LevelKey:
-				return slog.String(slog.LevelKey, strings.ToLower(a.Value.String()))
-			}
-			return a
-		},
+	slog.SetDefault(slog.New(slog.NewJSONHandler(defaultDiode, &slog.HandlerOptions{
+		AddSource:   true,
+		Level:       defaultLevel,
+		ReplaceAttr: slogReplaceAttr,
 	})))
 }
 
 func setupDefaultLogger() {
-	DefaultLogger = New(DefaultDiode, WithLoggerCallerSkipFrameCount(zerolog.CallerSkipFrameCount+2))
-	zerolog.DefaultContextLogger = &DefaultLogger.Logger
+	defaultLogger = newLogger(defaultDiode, withLoggerCallerSkipFrameCount(zerolog.CallerSkipFrameCount+2))
+	zerolog.DefaultContextLogger = &defaultLogger.Logger
 }
 
 // --- Helper Functions ---
 
-func DefaultDiodeDroppedLogFn(dropCount int) {
+func marshalStack(err error) interface{} {
+	stack := pkgerrors.MarshalStack(err)
+	st, ok := stack.([]map[string]string)
+	if !ok {
+		return stack
+	}
+
+	// Filter out runtime frames
+	filtered := make([]map[string]string, 0, len(st))
+	for _, frame := range st {
+		src := frame["source"]
+		// Filter out internal GO runtime frames
+		if strings.Contains(src, "runtime/") || strings.HasSuffix(src, ".s") || src == "proc.go" {
+			continue
+		}
+		filtered = append(filtered, frame)
+	}
+	return filtered
+}
+
+func slogReplaceAttr(groups []string, a slog.Attr) slog.Attr {
+	switch a.Key {
+	case slog.TimeKey:
+		return slog.String(zerolog.TimestampFieldName, a.Value.Time().Format(time.RFC3339))
+	case slog.LevelKey:
+		return slog.String(slog.LevelKey, strings.ToLower(a.Value.String()))
+	}
+	return a
+}
+
+func defaultDiodeDroppedLogFn(dropCount int) {
 	slog.Warn(
 		fmt.Sprintf(
 			"zLog: dropped %d logs due to buffer overflow",
@@ -107,9 +129,9 @@ func slogLevelToZerologLevel(sl slog.Level) zerolog.Level {
 
 // --- Constructors ---
 
-// New creates a new Logger instance with the given output writer and options.
-func New(output io.Writer, opts ...LoggerOption) Logger {
-	config := LoggerConfig{
+// newLogger creates a new Logger instance with the given output writer and options.
+func newLogger(output io.Writer, opts ...loggerOption) logger {
+	config := loggerConfig{
 		CallerSkipFrameCount: zerolog.CallerSkipFrameCount + 1,
 	}
 
@@ -117,21 +139,21 @@ func New(output io.Writer, opts ...LoggerOption) Logger {
 		o(&config)
 	}
 
-	logger := zerolog.
+	loggerInstance := zerolog.
 		New(output).
 		With().
 		Timestamp().
-		CallerWithSkipFrameCount(config.CallerSkipFrameCount).
+		Stack().
 		Logger()
 
-	return Logger{
-		Logger: logger,
+	return logger{
+		Logger: loggerInstance,
 		Config: config,
 	}
 }
 
-func WithLoggerCallerSkipFrameCount(skipCount int) LoggerOption {
-	return func(cfg *LoggerConfig) {
+func withLoggerCallerSkipFrameCount(skipCount int) loggerOption {
+	return func(cfg *loggerConfig) {
 		cfg.CallerSkipFrameCount = skipCount
 	}
 }
@@ -144,10 +166,10 @@ func FromContext(ctx context.Context) *zerolog.Logger {
 
 // NewContext returns a new context with the provided zerolog hooks attached to the logger.
 func NewContext(ctx context.Context, hooks ...zerolog.Hook) (context.Context, *zerolog.Logger) {
-	logger := zerolog.Ctx(ctx)
+	l := zerolog.Ctx(ctx)
 	for _, h := range hooks {
-		l := logger.Hook(h).With().Logger()
-		logger = &l
+		loggerInstance := l.Hook(h).With().Logger()
+		l = &loggerInstance
 	}
-	return logger.WithContext(ctx), logger
+	return l.WithContext(ctx), l
 }
