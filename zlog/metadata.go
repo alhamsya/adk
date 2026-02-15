@@ -6,14 +6,12 @@ import (
 	"sync"
 )
 
-func CtxWithMetadata(ctx context.Context, md *Metadata) context.Context {
+func CtxWithMetadata(ctx context.Context) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if md == nil {
-		md = &Metadata{&sync.Map{}}
-	}
+	md := &Metadata{&sync.Map{}}
 
 	return context.WithValue(ctx, loggingMetadata{}, md)
 }

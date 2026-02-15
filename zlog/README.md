@@ -25,7 +25,7 @@ First, initialize the context to hold metadata:
 
 ```go
 ctx := context.Background()
-ctx = zlog.CtxWithMetadata(ctx, nil)
+ctx = zlog.CtxWithMetadata(ctx)
 ```
 
 #### 2. Inject Metadata
