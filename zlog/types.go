@@ -45,8 +45,8 @@ var (
 	diodeDroppedLogFn = defaultDiodeDroppedLogFn
 )
 
-type Metadata struct {
+type Annotation struct {
 	*sync.Map
 }
 
-type loggingMetadata struct{}
+type loggingAnnotation struct{}

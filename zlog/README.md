@@ -16,35 +16,35 @@ go get github.com/alhamsya/adk/zlog
 
 `zlog` automatically configures `zerolog` and `slog` to use **RFC3339** format (e.g., `2026-02-15T15:04:05+07:00`) for the `timestamp` field. This ensures compatibility with systems expecting `timestampz`.
 
-### Metadata Injection
+### Annotation Injection
 
-You can inject metadata into the context, which will be automatically included in all subsequent log entries created from that context.
+You can inject annotation into the context, which will be automatically included in all subsequent log entries created from that context.
 
 #### 1. Initialize Context
-First, initialize the context to hold metadata:
+First, initialize the context to hold annotation:
 
 ```go
 ctx := context.Background()
-ctx = zlog.CtxWithMetadata(ctx)
+ctx = zlog.CtxWithAnnotation(ctx)
 ```
 
-#### 2. Inject Metadata
-Inject metadata key-value pairs. This updates the metadata in-place (thread-safe).
+#### 2. Inject Annotation
+Inject annotation key-value pairs. This updates the annotation in-place (thread-safe).
 
 ```go
-zlog.InjectMetadata(ctx, map[string]any{
+zlog.InjectAnnotation(ctx, map[string]any{
     "user_id": "12345",
     "request_id": "req-abc-789",
 })
 ```
 
-#### 3. Log with Metadata
-When you create a logger from this context, the metadata is automatically attached.
+#### 3. Log with Annotation
+When you create a logger from this context, the annotation is automatically attached.
 
 ```go
 logger := zlog.FromContext(ctx)
 logger.Info().Msg("Action performed")
-// Output: {"level":"info","metadata":{"user_id":"12345","request_id":"req-abc-789"},"timestamp":"...","message":"Action performed"}
+// Output: {"level":"info","annotation":{"user_id":"12345","request_id":"req-abc-789"},"timestamp":"...","message":"Action performed"}
 ```
 
 ### Stack Traces
