@@ -45,8 +45,19 @@ var (
 	diodeDroppedLogFn = defaultDiodeDroppedLogFn
 )
 
+// Annotation holds the key-value pairs for logging metadata.
 type Annotation struct {
 	*sync.Map
+	isDefault bool
 }
 
+// loggingAnnotation is a context key for storing the Annotation.
 type loggingAnnotation struct{}
+
+// Option conforms to the option pattern for configuring context behavior.
+// It is an interface to allow the implementation to be hidden.
+type Option interface {
+	apply(*Annotation)
+}
+
+type optionFunc func(*Annotation)

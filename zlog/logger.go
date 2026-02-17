@@ -160,8 +160,16 @@ func withLoggerCallerSkipFrameCount(skipCount int) loggerOption {
 
 // FromContext returns the Logger associated with the ctx. If no logger
 // is associated, it returns the global default logger.
+// It also checks for any annotations in the context and attaches them to the logger
+// if the annotation was marked as default (via DefaultAnnotation option).
 func FromContext(ctx context.Context) *zerolog.Logger {
-	return zerolog.Ctx(ctx)
+	l := zerolog.Ctx(ctx)
+	annotation := annotationFromCtx(ctx)
+	if annotation.isDefault {
+		annotatedLogger := l.With().Interface("annotation", annotation).Logger()
+		return &annotatedLogger
+	}
+	return l
 }
 
 // NewContext returns a new context with the provided zerolog hooks attached to the logger.

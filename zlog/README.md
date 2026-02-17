@@ -21,25 +21,26 @@ go get github.com/alhamsya/adk/zlog
 You can inject annotation into the context, which will be automatically included in all subsequent log entries created from that context.
 
 #### 1. Initialize Context
-First, initialize the context to hold annotation:
+First, initialize the context to hold annotation. You can pass options to configure behavior.
+To enable automatic injection into the logger (from `zlog.FromContext`), use `zlog.DefaultAnnotation()`.
 
 ```go
 ctx := context.Background()
-ctx = zlog.CtxWithAnnotation(ctx)
+ctx = zlog.CtxWithAnnotation(ctx, zlog.DefaultAnnotation())
 ```
 
 #### 2. Inject Annotation
 Inject annotation key-value pairs. This updates the annotation in-place (thread-safe).
 
 ```go
-zlog.InjectAnnotation(ctx, map[string]any{
+zlog.AddAnnotation(ctx, map[string]any{
     "user_id": "12345",
     "request_id": "req-abc-789",
 })
 ```
 
 #### 3. Log with Annotation
-When you create a logger from this context, the annotation is automatically attached.
+When you create a logger from this context, the annotation is automatically attached if `DefaultAnnotation()` was used.
 
 ```go
 logger := zlog.FromContext(ctx)
