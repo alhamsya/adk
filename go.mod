@@ -2,8 +2,6 @@ module github.com/alhamsya/adk
 
 go 1.24.0
 
-replace github.com/alhamsya/adk/zlog => ./zlog
-
 require (
 	github.com/alhamsya/adk/zlog v1.2.0
 	github.com/pkg/errors v0.9.1
