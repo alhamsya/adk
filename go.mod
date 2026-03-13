@@ -1,9 +1,14 @@
 module github.com/alhamsya/adk
 
-go 1.24.0
+go 1.25.7
+
+replace (
+	github.com/alhamsya/adk/xerr => ./xerr
+	github.com/alhamsya/adk/zlog => ./zlog
+)
 
 require (
-	github.com/alhamsya/adk/zlog v1.2.0
+	github.com/alhamsya/adk/zlog v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 )
 
