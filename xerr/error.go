@@ -20,6 +20,14 @@ func New(errType Type, msg string) *Error {
 	}
 }
 
+func NewWithWrap(errType Type, cause error, msg string) *Error {
+	err := New(errType, msg)
+	if cause != nil {
+		err.Wrap(cause)
+	}
+	return err
+}
+
 func (e *Error) Wrap(err error) {
 	e.err = err
 }
