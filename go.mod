@@ -1,6 +1,6 @@
 module github.com/alhamsya/adk
 
-go 1.25.7
+go 1.24.0
 
 replace (
 	github.com/alhamsya/adk/xerr => ./xerr

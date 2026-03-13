@@ -1,6 +1,6 @@
 module github.com/alhamsya/adk/zlog
 
-go 1.25.7
+go 1.24.0
 
 require github.com/rs/zerolog v1.34.0
 
