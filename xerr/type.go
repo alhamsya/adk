@@ -1,6 +1,8 @@
 package xerr
 
 import (
+	"fmt"
+
 	"google.golang.org/grpc/codes"
 )
 
@@ -18,6 +20,8 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	//TODO implement me
-	panic("implement me")
+	if e.err == nil {
+		return e.Message
+	}
+	return fmt.Sprintf("%s: %s", e.Message, e.err.Error())
 }

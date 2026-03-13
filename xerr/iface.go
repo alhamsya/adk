@@ -23,6 +23,11 @@ type GRPCErrType interface {
 	Type() Type
 }
 
+type HTTPStatusCode interface {
+	// HTTPStatus should return an HTTP Status Code.
+	HTTPStatus() int
+}
+
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }

@@ -2,6 +2,7 @@ package xerr
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,12 +37,9 @@ func (e Error) Is(err error) bool {
 }
 
 func cmp(e1 *Error, e2 *Error) bool {
-	if e1.Code != e2.Code &&
-		e1.Message != e2.Message &&
-		e1.Type != e2.Type {
-		return false
-	}
-	return true
+	return e1.Code == e2.Code &&
+		e1.Message == e2.Message &&
+		e1.Type == e2.Type
 }
 
 func (e Error) Unwrap() error {
@@ -58,6 +56,14 @@ func (e Error) GRPCStatus() *status.Status {
 	return grpcStatus
 }
 
+func (e Error) HTTPStatus() int {
+	sts, found := TypeToHTTPStatus[e.Type]
+	if !found {
+		return 500
+	}
+	return sts
+}
+
 func FromError(err error, opts ...Option) *Error {
 	if err == nil {
 		return &Error{
@@ -69,10 +75,14 @@ func FromError(err error, opts ...Option) *Error {
 
 	var ownErr *Error
 	if errors.As(err, &ownErr) {
-		// if err already an gerr.Error,
-		// apply opts (if any) & return immediately
-		for _, opt := range opts {
-			opt(ownErr)
+		// if err already an *Error,
+		// and we have options, return a copy to avoid modifying the original (e.g. global presets)
+		if len(opts) > 0 {
+			res := *ownErr
+			for _, opt := range opts {
+				opt(&res)
+			}
+			return &res
 		}
 		return ownErr
 	}

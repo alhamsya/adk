@@ -1,6 +1,9 @@
 package xerr
 
-import "google.golang.org/grpc/codes"
+import (
+	"google.golang.org/grpc/codes"
+	"net/http"
+)
 
 const (
 	TypeUnknown             Type = ""                      // TypeUnknown for handle unknown error type
@@ -17,12 +20,16 @@ const (
 	TypeNoTradingPermission Type = "NO_TRADING_PERMISSION" // TypeNoTradingPermission equals to HTTP Status Code [403] or GRPC code [7].
 	TypeNoSubscription      Type = "NO_SUBSCRIPTION"       // TypeNoSubscription equals to HTTP Status Code [403] or GRPC code [7].
 	TypeForbidden           Type = "FORBIDDEN"             // TypeForbidden equals to HTTP Status Code [403] or GRPC code [7].
-	TypeDuplicateCall       Type = "DUPLICATE_CALL"        // TypeDuplicateCall equals to HTTP Status Code [412] or GRPC code [9].
+	TypeDuplicateCall       Type = "DUPLICATE_CALL"        // TypeDuplicateCall equals to HTTP Status Code [409] or GRPC code [6].
 	TypeRequestCanceled     Type = "REQUEST_CANCELED"      // TypeRequestCanceled equals to HTTP Status Code [499] or GRPC code [1].
+	TypeAlreadyExists       Type = "ALREADY_EXISTS"        // TypeAlreadyExists equals to HTTP Status Code [409] or GRPC code [6].
+	TypeUnimplemented       Type = "UNIMPLEMENTED"         // TypeUnimplemented equals to HTTP Status Code [501] or GRPC code [12].
+	TypeAborted             Type = "ABORTED"               // TypeAborted equals to HTTP Status Code [409] or GRPC code [10].
 )
 
 var TypeToGRPCCode = map[Type]codes.Code{
 	TypeOK:                  codes.OK,
+	TypeRequestCanceled:     codes.Canceled,
 	TypeInvalidParameter:    codes.InvalidArgument,
 	TypeUnauthorized:        codes.Unauthenticated,
 	TypeNotFound:            codes.NotFound,
@@ -35,8 +42,31 @@ var TypeToGRPCCode = map[Type]codes.Code{
 	TypeNoTradingPermission: codes.PermissionDenied,
 	TypeNoSubscription:      codes.PermissionDenied,
 	TypeForbidden:           codes.PermissionDenied,
-	TypeDuplicateCall:       codes.FailedPrecondition,
-	TypeRequestCanceled:     codes.Canceled,
+	TypeDuplicateCall:       codes.AlreadyExists,
+	TypeAlreadyExists:       codes.AlreadyExists,
+	TypeUnimplemented:       codes.Unimplemented,
+	TypeAborted:             codes.Aborted,
+}
+
+var TypeToHTTPStatus = map[Type]int{
+	TypeOK:                  http.StatusOK,
+	TypeInvalidParameter:    http.StatusBadRequest,
+	TypeUnauthorized:        http.StatusUnauthorized,
+	TypeForbidden:           http.StatusForbidden,
+	TypeNoTradingPermission: http.StatusForbidden,
+	TypeNoSubscription:      http.StatusForbidden,
+	TypeNotFound:            http.StatusNotFound,
+	TypeDuplicateCall:       http.StatusConflict,
+	TypeAlreadyExists:       http.StatusConflict,
+	TypeAborted:             http.StatusConflict,
+	TypeServiceBusy:         http.StatusTooManyRequests,
+	TypeRequestCanceled:     499,
+	TypeSystemError:         http.StatusInternalServerError,
+	TypeVendorError:         http.StatusInternalServerError,
+	TypeUnimplemented:       http.StatusNotImplemented,
+	TypeBadGateway:          http.StatusBadGateway,
+	TypeMaintenance:         http.StatusServiceUnavailable,
+	TypeGatewayTimeout:      http.StatusGatewayTimeout,
 }
 
 var (
@@ -112,7 +142,7 @@ var (
 		Message: TypeForbidden.String(),
 		Type:    TypeForbidden,
 	}
-	// ErrDuplicateCall equals to HTTP Status Code [412] or GRPC code [9].
+	// ErrDuplicateCall equals to HTTP Status Code [409] or GRPC code [6].
 	ErrDuplicateCall = &Error{
 		Code:    TypeToGRPCCode[TypeDuplicateCall],
 		Message: TypeDuplicateCall.String(),
@@ -123,5 +153,23 @@ var (
 		Code:    TypeToGRPCCode[TypeRequestCanceled],
 		Message: TypeRequestCanceled.String(),
 		Type:    TypeRequestCanceled,
+	}
+	// ErrAlreadyExists equals to HTTP Status Code [409] or GRPC code [6].
+	ErrAlreadyExists = &Error{
+		Code:    TypeToGRPCCode[TypeAlreadyExists],
+		Message: TypeAlreadyExists.String(),
+		Type:    TypeAlreadyExists,
+	}
+	// ErrUnimplemented equals to HTTP Status Code [501] or GRPC code [12].
+	ErrUnimplemented = &Error{
+		Code:    TypeToGRPCCode[TypeUnimplemented],
+		Message: TypeUnimplemented.String(),
+		Type:    TypeUnimplemented,
+	}
+	// ErrAborted equals to HTTP Status Code [409] or GRPC code [10].
+	ErrAborted = &Error{
+		Code:    TypeToGRPCCode[TypeAborted],
+		Message: TypeAborted.String(),
+		Type:    TypeAborted,
 	}
 )
