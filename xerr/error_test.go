@@ -1,7 +1,7 @@
 package xerr_test
 
 import (
-	"github.com/alhamsya/adk/xerr/v2"
+	"github.com/alhamsya/adk/xerr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
