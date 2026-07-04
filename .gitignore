@@ -43,3 +43,6 @@ k6-report.html
 checkstyle.xml
 gl-code-quality-report.json
 /cmd/
+
+# graphify knowledge graph output
+graphify-out/
