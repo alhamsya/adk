@@ -50,11 +50,13 @@ slog.Warn("careful", "n", 3)
 ## Context loggers
 
 ```go
-func FromContext(ctx context.Context) *zerolog.Logger
-func NewContext(ctx context.Context, hooks ...zerolog.Hook) (context.Context, *zerolog.Logger)
+func FromContext(ctx context.Context) *Logger
+func NewContext(ctx context.Context, hooks ...zerolog.Hook) (context.Context, *Logger)
 ```
 
-- `FromContext` returns the ctx-scoped zerolog logger (or the global default). If the context carries a **default** annotation, the returned logger auto-includes it.
+`zlog.Logger` embeds `zerolog.Logger`, so you use it exactly like one (`.Info().Msg(...)`). It overrides the event methods to place the **timestamp right after the level** on every line — see [Field order](#field-order).
+
+- `FromContext` returns the ctx-scoped logger (or the global default), wrapped. If the context carries a **default** annotation, every event auto-includes it (right after the timestamp).
 - `NewContext` attaches zerolog hooks and stores the logger back on the context.
 
 ```go
@@ -75,7 +77,7 @@ zlog.AddAnnotation(ctx, map[string]any{"user_id": "12345", "request_id": "req-ab
 
 // 3. Log — annotation is attached automatically
 zlog.FromContext(ctx).Info().Msg("action performed")
-// {"level":"info","annotation":{"user_id":"12345","request_id":"req-abc"},"timestamp":"...","message":"action performed"}
+// {"level":"info","timestamp":"...","annotation":{"user_id":"12345","request_id":"req-abc"},"message":"action performed"}
 ```
 
 API:
@@ -88,6 +90,19 @@ AnnotationFromCtx(ctx) *Annotation                      // inspect/pass around m
 ```
 
 `Annotation` wraps a `sync.Map` and implements `json.Marshaler`.
+
+## Field order
+
+Both output paths lead with the time, then the level:
+
+| Path | Order |
+|------|-------|
+| `slog.*` (stdlib handler) | `timestamp`, `level`, `source`, `msg`, ... |
+| `zlog.FromContext(ctx)` (wrapper) | `level`, `timestamp`, [`annotation`], ...fields, `message` |
+
+zerolog always writes `level` as the **first** JSON key — that is hard-wired and cannot be changed. The `zlog.Logger` wrapper injects the timestamp with `Event.Timestamp()` per event so it lands **immediately after the level**, instead of zerolog's default `.Timestamp()` context hook, which runs at `Msg` time and drops the timestamp *after* your fields.
+
+> Caveat: this timestamp placement only applies to events created through the `zlog.Logger` wrapper (i.e. via `FromContext`/`NewContext`). Logging through a raw `zerolog.Ctx(ctx)` bypasses it and produces no timestamp.
 
 ## Stack traces
 
