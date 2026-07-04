@@ -139,10 +139,12 @@ func newLogger(output io.Writer, opts ...loggerOption) logger {
 		o(&config)
 	}
 
+	// Timestamp is intentionally NOT added here. The zerolog .Timestamp() context
+	// hook runs at Msg time, so it lands after caller fields. Instead, the Logger
+	// wrapper (see wrap.go) injects the timestamp per event, right after the level.
 	loggerInstance := zerolog.
 		New(output).
 		With().
-		Timestamp().
 		Stack().
 		Logger()
 
@@ -162,22 +164,21 @@ func withLoggerCallerSkipFrameCount(skipCount int) loggerOption {
 // is associated, it returns the global default logger.
 // It also checks for any annotations in the context and attaches them to the logger
 // if the annotation was marked as default (via DefaultAnnotation option).
-func FromContext(ctx context.Context) *zerolog.Logger {
+func FromContext(ctx context.Context) *Logger {
 	l := zerolog.Ctx(ctx)
 	annotation := annotationFromCtx(ctx)
 	if annotation.isDefault {
-		annotatedLogger := l.With().Interface("annotation", annotation).Logger()
-		return &annotatedLogger
+		return &Logger{Logger: *l, annotation: annotation}
 	}
-	return l
+	return &Logger{Logger: *l}
 }
 
 // NewContext returns a new context with the provided zerolog hooks attached to the logger.
-func NewContext(ctx context.Context, hooks ...zerolog.Hook) (context.Context, *zerolog.Logger) {
+func NewContext(ctx context.Context, hooks ...zerolog.Hook) (context.Context, *Logger) {
 	l := zerolog.Ctx(ctx)
 	for _, h := range hooks {
 		loggerInstance := l.Hook(h).With().Logger()
 		l = &loggerInstance
 	}
-	return l.WithContext(ctx), l
+	return l.WithContext(ctx), &Logger{Logger: *l}
 }
